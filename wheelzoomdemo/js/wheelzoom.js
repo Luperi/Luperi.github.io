@@ -54,6 +54,8 @@ window.wheelzoom = (function(){
 		var bgPosY;
 		var previousEvent;
 		var cachedDataUrl;
+		var xDragShift;
+		var yDragShift;
 
 		function setSrcToBackground(img) {
 			img.style.backgroundImage = 'url("'+img.src+'")';
@@ -197,17 +199,30 @@ window.wheelzoom = (function(){
 				yShift: yShift
 			});
 
+			xDragShift += xShift;
+			yDragShift += yShift;
+
 			previousEvent = e;
 			updateBgStyle();
 		}
 
 		function removeDrag() {
+			triggerEvent(img, 'wheelzoom.dragend', {
+				xShift: xDragShift,
+				yShift: yDragShift
+			});
+
 			document.removeEventListener('mouseup', removeDrag);
 			document.removeEventListener('mousemove', drag);
 		}
 
 		// Make the background draggable
 		function draggable(e) {
+			xDragShift = 0;
+			yDragShift = 0;
+
+			triggerEvent(img, 'wheelzoom.dragstart');
+
 			e.preventDefault();
 			previousEvent = e;
 			document.addEventListener('mousemove', drag);
@@ -230,9 +245,9 @@ window.wheelzoom = (function(){
 
 			img.style.backgroundSize =  width+'px '+height+'px';
 			img.style.backgroundPosition = '0 0';
+
 			img.addEventListener('wheelzoom.reset', reset);
 			img.addEventListener('wheelzoom.destroy', destroy);
-
 			img.addEventListener('wheel', onwheel);
 			img.addEventListener('mousedown', draggable);
 		}
@@ -255,8 +270,6 @@ window.wheelzoom = (function(){
 			src: img.src
 		});
 
-		img.addEventListener('wheelzoom.destroy', destroy);
-
 		options = options || {};
 
 		Object.keys(defaults).forEach(function(key){
@@ -278,10 +291,13 @@ window.wheelzoom = (function(){
 	} else {
 		return function(elements, options) {
 			if (elements && elements.length) {
-				Array.prototype.forEach.call(elements, main, options);
+				for (var i=0;i<elements.length;i++) {
+					main(elements[i], options);
+				}
 			} else if (elements && elements.nodeName) {
 				main(elements, options);
 			}
+
 			return elements;
 		};
 	}
