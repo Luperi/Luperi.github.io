@@ -1,7 +1,7 @@
 /*!
-	Wheelzoom 1.1.0
+	Wheelzoom 1.1.1
 	license: MIT
-	https://github.com/Luperi/wheelzoom
+	https://luperi.github.io/wheelzoom/
 */
 
 // create CustomEvent to override window.Event in unsupported browsers
@@ -257,7 +257,6 @@ window.wheelzoom = (function(){
 		var destroy = function (originalProperties) {
 			img.removeEventListener('wheelzoom.destroy', destroy);
 			img.removeEventListener('wheelzoom.reset', reset);
-			img.removeEventListener('load', load);
 			img.removeEventListener('mouseup', removeDrag);
 			img.removeEventListener('mousemove', drag);
 			img.removeEventListener('mousedown', draggable);
@@ -278,11 +277,13 @@ window.wheelzoom = (function(){
 			settings[key] = typeof options[key] !== 'undefined' ? options[key] : defaults[key];
 		});
 
-		if (img.complete) {
-			load();
-		}
+		var t = setInterval(function(){
+			if (img.complete) {
+				load();
+			}
 
-		img.addEventListener('load', load);
+			clearInterval(t);
+		}, 100);
 	};
 
 	// Do nothing in IE8
